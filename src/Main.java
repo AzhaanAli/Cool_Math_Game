@@ -3,81 +3,27 @@ import java.util.Scanner;
 
 public class Main {
 
-    public static int[] IDENTITY_ARRAY = new int[]{
+    public static short[] IDENTITY_ARRAY = new short[]{
             2, 7, 6, 9, 5, 1, 4, 3, 8
     };
 
     public static void main(String[] args) {
 
-        short[] board = new short[]{
-                0, 0, 0,
-                0, 0, 0,
-                0, 0, 0
-        };
-
-        Scanner s = new Scanner(System.in);
-
-        ArrayList<String> playerList = new ArrayList<>();
-        ArrayList<String> aiList     = new ArrayList<>();
-
-        ArrayList<String> remainingMoves = new ArrayList<>();
-        for(int i = 1; i <= 9; i++) remainingMoves.add(i + "");
-
-        boolean playerTurn = false;
-        while(!isWon(board))
-        {
-
-            if(playerTurn)
-            {
-                System.out.println("Enemy list: " + aiList);
-                System.out.println("Your list: " + playerList);
-                System.out.println("\n");
-                System.out.println("Remaining numbers: " + remainingMoves);
-                System.out.print("Choose a number from the list: ");
-
-                String choice = s.nextLine();
-                int intChoice = Integer.parseInt(choice);
-                playerList.add(choice);
-                int index = getIndexEquivalent(intChoice);
-                board[index] = 1;
-                remainingMoves.remove(choice);
-
-                System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
-                System.out.println("You chose " + choice + "!");
-
-            }
-            else
-            {
-                int choice = getBestMove(board);
-                String choiceStr = IDENTITY_ARRAY[choice] + "";
-                aiList.add(choiceStr);
-                board[choice] = 2;
-                remainingMoves.remove(choiceStr);
-
-                System.out.println("Ai chose " + choiceStr + "!");
-            }
-
-
-
-            playerTurn = !playerTurn;
-
-        }
-
-
+        startGame();
 
     }
 
-    public static int getBestMove(short[] baseBoard){
+    public static int getBestMove(byte[] board){
 
         int max = Short.MIN_VALUE;
         ArrayList<Integer> bestMoves = new ArrayList<>();
 
         for(int i = 0; i < 9; i++)
-            if(baseBoard[i] == 0)
+            if(board[i] == 0)
             {
-                baseBoard[i] = 2;
-                int loss = minimax(baseBoard, false);
-                baseBoard[i] = 0;
+                board[i] = 2;
+                int loss = minimax(board, false);
+                board[i] = 0;
 
                 if(loss > max)
                 {
@@ -87,48 +33,49 @@ public class Main {
                 }
                 else if(loss == max)
                     bestMoves.add(i);
-
             }
+
         return bestMoves.get((int)(Math.random() * bestMoves.size()));
     }
 
-    public static int minimax(short[] baseBoard, boolean aiTurn){
+    public static int minimax(byte[] board, boolean aiTurn){
 
-        if (isWon(baseBoard))
-            return evaluateBoard(baseBoard, aiTurn);
-
-        int minMax = aiTurn?
-                Integer.MIN_VALUE:
-                Integer.MAX_VALUE;
-
+        if (isWon(board)) return evaluateBoard(board, aiTurn);
+        int minMax = aiTurn? Integer.MIN_VALUE : Integer.MAX_VALUE;
         for(int i = 0; i < 9; i++)
-            if(baseBoard[i] == 0)
+            if(board[i] == 0)
             {
-                baseBoard[i] = (short) (aiTurn? 2 : 1);
-                int loss = minimax(baseBoard, !aiTurn);
+                board[i] = (byte) (aiTurn? 2 : 1);
+                int loss = minimax(board, !aiTurn);
                 minMax = aiTurn?
                         Math.max(minMax, loss):
                         Math.min(minMax, loss);
-                baseBoard[i] = 0;
+                board[i] = 0;
             }
         return minMax;
 
     }
-    public static short evaluateBoard(short[] board, boolean aiTurn){
 
-        if(isWon(board))
-        {
-            short count = 1;
-            for(short i : board)
-                if(i == 0)
-                    count++;
-            if(aiTurn) count *= -1;
-            return count;
-        }
-        return 0;
+    public static short getZeros(byte[] board){
+
+        short  count = 0;
+        for(byte i : board)
+            if(i == 0)
+               count++;
+        return count;
 
     }
-    public static boolean isWon(short[] board){
+
+    public static short evaluateBoard(byte[] board, boolean aiTurn){
+
+        if(!isWon(board)) return 0;
+        short count = (short) (getZeros(board) + 1);
+        if(aiTurn) count *= -1;
+        return count;
+
+    }
+
+    public static boolean isWon(byte[] board){
 
         for(int i = 0; i < 3; i++)
         {
@@ -158,6 +105,7 @@ public class Main {
                board[6] == board[2];
 
     }
+
     public static int getIndexEquivalent(int num){
 
         for(int i = 0; i < 9; i++)
@@ -167,14 +115,80 @@ public class Main {
 
     }
 
-    public static void printBoard(short[] board){
+    public static void wipeConsole(){
 
-        for(int i = 0; i < 9; i++)
+        System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
+
+    }
+
+    public static void startGame(){
+
+        byte[] board = new byte[9];
+
+        Scanner s = new Scanner(System.in);
+
+        wipeConsole();
+        System.out.println("The goal is to choose 3 numbers from the list that add to 15.");
+        System.out.print("If you understand the instructions, press enter.");
+        s.nextLine();
+        wipeConsole();
+
+        ArrayList<String> playerList = new ArrayList<>();
+        ArrayList<String> aiList     = new ArrayList<>();
+
+        ArrayList<String> remainingMoves = new ArrayList<>();
+        for(int i = 1; i <= 9; i++) remainingMoves.add(i + "");
+
+        boolean playerTurn = Math.random() > .5;
+        while(!isWon(board))
         {
-            System.out.print(board[i] + " ");
-            if ((i + 1) % 3 == 0)
-                System.out.println();
+
+            if(playerTurn)
+            {
+                System.out.println("Enemy list: " + aiList);
+                System.out.println("Your list: " + playerList);
+                System.out.println("\nRemaining numbers: " + remainingMoves);
+
+                String choice = "";
+                while(!remainingMoves.contains(choice))
+                {
+                    System.out.print("Choose a number from the list: ");
+                    choice = s.nextLine();
+                }
+                int intChoice = Integer.parseInt(choice);
+                playerList.add(choice);
+                int index = getIndexEquivalent(intChoice);
+                board[index] = 1;
+                remainingMoves.remove(choice);
+
+                wipeConsole();
+                System.out.println("You chose " + choice + "!");
+            }
+            else
+            {
+                int choice = getBestMove(board);
+                String choiceStr = IDENTITY_ARRAY[choice] + "";
+                aiList.add(choiceStr);
+                board[choice] = 2;
+                remainingMoves.remove(choiceStr);
+                System.out.println("Ai chose " + choiceStr + "!\n");
+            }
+
+            if (isWon(board))
+            {
+                System.out.print("\nGAME OVER: ");
+                System.out.print(playerTurn? "You" : "Ai");
+                System.out.println(" gathered 3 numbers that add to 15.");
+            }
+            else if(getZeros(board) == 0)
+                System.out.print("\nGAME OVER: You failed to gather 3 numbers that add to 15.");
+
+            playerTurn = !playerTurn;
         }
+
+        System.out.println("Enemy list: " + aiList);
+        System.out.println("Your list: " + playerList);
+
     }
 
 }
