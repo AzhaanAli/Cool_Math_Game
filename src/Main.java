@@ -21,6 +21,13 @@ public class Main {
         for(int i = 0; i < 9; i++)
             if(board[i] == 0)
             {
+                board[i] = 1;
+                if(isWon(board))
+                {
+                    board[i] = 0;
+                    return i;
+                }
+
                 board[i] = 2;
                 int loss = minimax(board, false);
                 board[i] = 0;
@@ -181,7 +188,7 @@ public class Main {
                 System.out.println(" gathered 3 numbers that add to 15.");
             }
             else if(getZeros(board) == 0)
-                System.out.print("\nGAME OVER: You failed to gather 3 numbers that add to 15.");
+                System.out.println("\nGAME OVER: You failed to gather 3 numbers that add to 15.");
 
             playerTurn = !playerTurn;
         }
