@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Scanner;
 
 public class Main {
@@ -25,7 +24,7 @@ public class Main {
         for(int i = 1; i <= 9; i++) remainingMoves.add(i + "");
 
         boolean playerTurn = false;
-        while(!boardWon(board))
+        while(!isWon(board))
         {
 
             if(playerTurn)
@@ -39,9 +38,9 @@ public class Main {
                 String choice = s.nextLine();
                 int intChoice = Integer.parseInt(choice);
                 playerList.add(choice);
-//                int index = getIndexEquivalent(intChoice);
-                board[intChoice] = 1;
-//                remainingMoves.remove(choice);
+                int index = getIndexEquivalent(intChoice);
+                board[index] = 1;
+                remainingMoves.remove(choice);
 
                 System.out.println("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n");
                 System.out.println("You chose " + choice + "!");
@@ -50,15 +49,15 @@ public class Main {
             else
             {
                 int choice = getBestMove(board);
-//                String choiceStr = IDENTITY_ARRAY[choice] + "";
-//                aiList.add(choiceStr);
+                String choiceStr = IDENTITY_ARRAY[choice] + "";
+                aiList.add(choiceStr);
                 board[choice] = 2;
-//                remainingMoves.remove(choiceStr);
+                remainingMoves.remove(choiceStr);
 
-//                System.out.println("Ai chose " + choiceStr + "!");
+                System.out.println("Ai chose " + choiceStr + "!");
             }
 
-            printBoard(board);
+
 
             playerTurn = !playerTurn;
 
@@ -77,10 +76,8 @@ public class Main {
             if(baseBoard[i] == 0)
             {
                 baseBoard[i] = 2;
-                int loss = f(baseBoard, false);
+                int loss = minimax(baseBoard, false);
                 baseBoard[i] = 0;
-
-                System.out.println(i + "\t" + loss);
 
                 if(loss > max)
                 {
@@ -95,69 +92,70 @@ public class Main {
         return bestMoves.get((int)(Math.random() * bestMoves.size()));
     }
 
-    public static int f(short[] baseBoard, boolean aiTurn){
+    public static int minimax(short[] baseBoard, boolean aiTurn){
 
-        if (boardWon(baseBoard))
-            return lossFunction(baseBoard, aiTurn);
+        if (isWon(baseBoard))
+            return evaluateBoard(baseBoard, aiTurn);
 
-        if(aiTurn)
-        // Maximizing.
-        {
-            int max = Integer.MIN_VALUE;
-            for(int i = 0; i < 9; i++)
-                if(baseBoard[i] == 0)
-                {
-                    baseBoard[i] = 2;
-                    int loss = f(baseBoard, false);
-                    max = Math.max(max, loss);
-                    baseBoard[i] = 0;
+        int minMax = aiTurn?
+                Integer.MIN_VALUE:
+                Integer.MAX_VALUE;
 
-                }
-            return max;
-        }
-        else
-        // Minimizing.
-        {
-            int min = Integer.MAX_VALUE;
-            for(int i = 0; i < 9; i++)
-                if(baseBoard[i] == 0)
-                {
-                    baseBoard[i] = 1;
-                    int loss = f(baseBoard, true);
-                    min = Math.min(min, loss);
-                    baseBoard[i] = 0;
-
-                }
-            return min;
-        }
-
+        for(int i = 0; i < 9; i++)
+            if(baseBoard[i] == 0)
+            {
+                baseBoard[i] = (short) (aiTurn? 2 : 1);
+                int loss = minimax(baseBoard, !aiTurn);
+                minMax = aiTurn?
+                        Math.max(minMax, loss):
+                        Math.min(minMax, loss);
+                baseBoard[i] = 0;
+            }
+        return minMax;
 
     }
-    public static short lossFunction(short[] board, boolean aiTurn){
+    public static short evaluateBoard(short[] board, boolean aiTurn){
 
-        if(boardWon(board))
+        if(isWon(board))
         {
             short count = 1;
             for(short i : board)
                 if(i == 0)
                     count++;
-            if(!aiTurn) count *= -1;
+            if(aiTurn) count *= -1;
             return count;
         }
         return 0;
 
     }
-    public static boolean boardWon(short[] board){
+    public static boolean isWon(short[] board){
 
         for(int i = 0; i < 3; i++)
         {
-            if(board[i] != 0 && board[i + 3] == board[i] && board[i + 6] == board[i]) return true;
+            if(
+                board[i] != 0 &&
+                board[i + 3] == board[i] &&
+                board[i + 6] == board[i]
+            ) return true;
+
             int times3 = i * 3;
-            if(board[times3] != 0 && board[times3 + 1] == board[times3] && board[times3 + 2] == board[times3]) return true;
+
+            if(
+                board[times3] != 0 &&
+                board[times3 + 1] == board[times3] &&
+                board[times3 + 2] == board[times3]
+            ) return true;
         }
 
-        if(board[0] != 0 && board[4] == board[0] && board[8] == board[0]) return true;
-        return board[2] != 0 && board[4] == board[2] && board[6] == board[2];
+        if(
+            board[0] != 0 &&
+            board[4] == board[0] &&
+            board[8] == board[0]
+        ) return true;
+
+        return board[2] != 0 &&
+               board[4] == board[2] &&
+               board[6] == board[2];
 
     }
     public static int getIndexEquivalent(int num){
@@ -166,6 +164,7 @@ public class Main {
             if(IDENTITY_ARRAY[i] == num)
                 return i;
         return -1;
+
     }
 
     public static void printBoard(short[] board){
